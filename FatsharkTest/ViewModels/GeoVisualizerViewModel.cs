@@ -22,26 +22,26 @@ public class GeoVisualizerViewModel : ViewModelPlotBase
         _dataPlot.Title = "Groups Geographically Close To Each Other";
         
         
-        K_Means alg = new K_Means(data, 7, 10);
+        KMeans alg = new KMeans(data, 7, 10);
         alg.Run();
-        var points = alg.GeoPoints;
+        List<GeoPoint> points = alg.GeoPoints;
 
         var clusters = points.GroupBy(p => p.ClusterId);
 
         clusters = clusters.OrderByDescending(c => c.Count());
-        var clusterColors = GenerateRandomColors(clusters.Count());
+        List<OxyColor> clusterColors = ColorThemes.GenerateRandomColors(clusters.Count());
         
-        foreach (var cluster in clusters)
+        foreach (IGrouping<int, GeoPoint> cluster in clusters)
         {
             Random random = new Random();
-            var scatterSeries = new ScatterSeries
+            ScatterSeries scatterSeries = new ScatterSeries
             {
                 MarkerType = MarkerType.Circle,
                 MarkerFill = clusterColors[cluster.Key],
                 Title = $"{cluster.Count()}",
             };
 
-            foreach (var point in cluster)
+            foreach (GeoPoint point in cluster)
             {
                 scatterSeries.Points.Add(new ScatterPoint(point.Longitude, point.Latitude, 5, cluster.Count()));
             }
@@ -49,14 +49,13 @@ public class GeoVisualizerViewModel : ViewModelPlotBase
             _dataPlot.Series.Add(scatterSeries);
         }
         
-        
         SetPlotStyle();
         OnPropertyChanged(nameof(DataPlot));
     }
 
     private void SetPlotStyle()
     {
-        OxyColor foregroundColor = OxyColor.FromRgb(0xa6, 0xa7, 0xb4);
+        OxyColor foregroundColor = ColorThemes.Foreground;
         _dataPlot.TextColor = foregroundColor;
 
         // Set axes
@@ -84,17 +83,5 @@ public class GeoVisualizerViewModel : ViewModelPlotBase
         _dataPlot.IsLegendVisible = true;
     }
     
-    private List<OxyColor> GenerateRandomColors(int count)
-    {
-        Random random = new Random();
-        List<OxyColor> colors = new List<OxyColor>();
-        for (int i = 0; i < count; i++)
-        {
-            colors.Add(OxyColor.FromRgb(
-                (byte)random.Next(64, 256),
-                (byte)random.Next(64, 256),
-                (byte)random.Next(64, 256)));
-        }
-        return colors;
-    }
+
 }

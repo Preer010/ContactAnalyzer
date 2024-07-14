@@ -4,29 +4,29 @@ using System.Linq;
 
 namespace FatsharkTest.Utils;
 
-public class K_Means
+
+// I used this as a reference when writing this algorithm
+// https://web.stanford.edu/~cpiech/cs221/handouts/kmeans.html
+public class KMeans
 {
-    private List<GeoPoint> _geoPoints;
-    private List<Centroid> _centroids;
     private int _k;
     private int _maxIt;
 
-    public List<GeoPoint> GeoPoints
-    {
-        get => _geoPoints;
-    }
-    
-    public K_Means(List<(double, double)> coords, int inK, int inMaxIt)
+    public List<GeoPoint> GeoPoints { get; private set; }
+    private List<Centroid> _centroids;
+
+    public KMeans(List<(double, double)> coords, int inK, int inMaxIt)
     {
         _k = inK;
         _maxIt = inMaxIt;
 
-        _geoPoints = coords.Select(coord => new GeoPoint(coord.Item1, coord.Item2)).ToList();
+        GeoPoints = coords.Select(coord => new GeoPoint(coord.Item1, coord.Item2)).ToList();
         _centroids = new List<Centroid>();
     }
 
     public void Run()
     {
+
         InitCentroids();
         for (int i = 0; i < _maxIt; i++)
         {
@@ -48,11 +48,11 @@ public class K_Means
         int counter = 0;
         while (_centroids.Count < _k && counter < (_k + _maxIt))
         {
-            int index = rand.Next(_geoPoints.Count);
+            int index = rand.Next(GeoPoints.Count);
             if (!chosenIndices.Contains(index))
             {
                 chosenIndices.Add(index);
-                GeoPoint chosenPoint = _geoPoints[index];
+                GeoPoint chosenPoint = GeoPoints[index];
                 _centroids.Add(new Centroid(chosenPoint.Latitude, chosenPoint.Longitude));
             }
             counter++;
@@ -63,7 +63,7 @@ public class K_Means
     {
         bool centroidDirty = false;
 
-        foreach (var point in _geoPoints)
+        foreach (var point in GeoPoints)
         {
             double minDist = double.MaxValue;
             int closestCentroid = -1;
@@ -90,6 +90,9 @@ public class K_Means
 
     private double CalculateDistance(GeoPoint p1, Centroid c)
     {
+        // Found these calculations online to use for latitude and longitude
+        // This could probably be rewritten to something more simple to help bigger datasets
+        
         // earths radius in km
         double radius = 6371;
         double varPI = Math.PI / 180;
@@ -113,7 +116,7 @@ public class K_Means
         // Create new centroids with the average cordinate of its geopoints
         for (int i = 0; i < _k; i++)
         {
-            var clusterPoints = _geoPoints.Where(gP => gP.ClusterId == i).ToList();
+            var clusterPoints = GeoPoints.Where(gP => gP.ClusterId == i).ToList();
 
             if (clusterPoints.Any())
             {

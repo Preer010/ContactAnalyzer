@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using FatsharkTest.Utils;
+using Microsoft.Windows.Themes;
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
@@ -8,17 +10,10 @@ namespace FatsharkTest.ViewModel;
 
 public class DataVisualizerViewModel : ViewModelPlotBase
 {
-    private string _title;
+    
     private BarSeries _barSeries;
-    public string Title
-    {
-        get => _title;
-        set  {
-            _title = value;
-            OnPropertyChanged(nameof(Title));
-        }
-    }
-    public OxyPlot.PlotModel DataPlot
+
+    public PlotModel DataPlot
     {
         get => _dataPlot;
         set {
@@ -40,9 +35,8 @@ public class DataVisualizerViewModel : ViewModelPlotBase
         _dataController.UnbindAll();
     }
 
-    public void SetData(Dictionary<string, int> inData, string inTitle )
+    public void SetData(Dictionary<string, int> inData, string inTitle)
     {
-        _title = inTitle;
         _dataPlot.Series.Clear();
         _dataPlot.Axes.Clear();
         _barSeries.Items.Clear();
@@ -56,7 +50,7 @@ public class DataVisualizerViewModel : ViewModelPlotBase
             axisNames.Add(type);
         }
 
-        OxyColor axisColor = OxyColor.FromRgb(0xa6, 0xa7, 0xb4);
+        OxyColor axisColor = ColorThemes.Foreground;
         
         _dataPlot.Axes.Add(new LinearAxis()
         {

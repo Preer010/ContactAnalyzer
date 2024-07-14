@@ -4,11 +4,9 @@ namespace FatsharkTest.ViewModel;
 
 public class ContactDataAnalysetViewModel : ViewModelBase
 {
-    private AnalyzedDataViewModel _analyzedDataViewModel;
-    private ContactListingViewModel _ContactListingViewModel;
-
-    public AnalyzedDataViewModel AnalyzedDataViewModel => _analyzedDataViewModel;
-    public ContactListingViewModel ContactListingViewModel => _ContactListingViewModel;
+    
+    public AnalyzedDataViewModel AnalyzedDataViewModel { get; private set; }
+    public ContactListingViewModel ContactListingViewModel { get; private set; }
     
     private Database _dataBase;
     
@@ -17,7 +15,7 @@ public class ContactDataAnalysetViewModel : ViewModelBase
         _dataBase = new Database();
         _dataBase.Initialize();
         
-        _analyzedDataViewModel = new AnalyzedDataViewModel(_dataBase);
-        _ContactListingViewModel = new ContactListingViewModel(_dataBase);
+        AnalyzedDataViewModel = new AnalyzedDataViewModel(_dataBase);
+        ContactListingViewModel = new ContactListingViewModel(_dataBase);
     }
 }

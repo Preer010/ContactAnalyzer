@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.JavaScript;
+using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -10,42 +10,21 @@ namespace FatsharkTest.Data;
 
 using System;
 using System.Data.SQLite;
+using CountDictionary = Dictionary<string, int>;
 
 public class Database
 {
     private SQLiteConnection _sqLiteConnection;
-    private Dictionary<string, int> _domains;
-    private Dictionary<string, int> _surnames;
-    private Dictionary<string, int> _forenames;
-    
-    
+
+    private CountDictionary _domains;
+    private CountDictionary _counties;
+
     public void Initialize()
     {
         GenerateSQL();
-        
-        string domainQuery = @"
-                    SELECT substr(Email, instr(Email, '@') + 1) AS Domain, COUNT(*) AS Count
-                    FROM Contacts
-                    GROUP BY Domain
-                    ORDER BY Count DESC;";
-        _domains = QueryCount(domainQuery, "Domain");
 
-        string surnameQuery = @"
-            SELECT LastName AS Surname, COUNT(*) AS Count
-            FROM Contacts
-            GROUP BY Surname
-            ORDER BY Count DESC;";
-
-        _surnames = QueryCount(surnameQuery, "Surname");
-
-        string forenameQuery = @"
-            SELECT FirstName AS ForeName, COUNT(*) AS Count
-            FROM Contacts
-            GROUP BY ForeName
-            ORDER BY Count DESC;";
-
-        _forenames = QueryCount(forenameQuery, "ForeName");
-        
+        _domains = DatabaseQueries.CountDomains(this);
+        _counties = DatabaseQueries.CountCounties(this);
     }
 
     private void GenerateSQL()
@@ -60,14 +39,13 @@ public class Database
                 string dropTableQuery = "DROP TABLE IF EXISTS Contacts;";
                 string createTableQuery = @"
                     CREATE TABLE Contacts (
-                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-	                    Email	TEXT,
+                        Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+	                    Email	    TEXT UNIQUE,
 	                    FirstName	TEXT,
 	                    LastName	TEXT,
-	                    County	TEXT,
-	                    Postal	TEXT
-                    );
-                ";
+	                    County	    TEXT,
+	                    Postal	    TEXT
+                    );";
 
                 using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
                 {
@@ -83,27 +61,25 @@ public class Database
             {
                 string dropTableQuery = "DROP TABLE IF EXISTS GeoLocation;";
                 string createGeoQuery = @"
-                CREATE TABLE GeoLocation (
-	                ID	    INTEGER,
-	                Lat	    INTEGER,
-	                Long	INTEGER,
-	                PRIMARY KEY(ID)
-                );
-            ";
+                    CREATE TABLE GeoLocation (
+	                    Postal	        TEXT,
+	                    Latitude	    INTEGER,
+	                    Longitude	    INTEGER,
+	                    PRIMARY KEY(Postal)
+                    );";
+                
                 using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
                 {
                     command.ExecuteNonQuery();
                 }
+
                 using (SQLiteCommand command = new SQLiteCommand(createGeoQuery, _sqLiteConnection))
                 {
                     command.ExecuteNonQuery();
                 }
             }
 
-            Console.WriteLine("Contacts Table has been created");
-
             ImportCsvData("uk-500.csv");
-
             _sqLiteConnection.Close();
         }
         catch (Exception e)
@@ -115,36 +91,48 @@ public class Database
 
     private void ImportCsvData(string csvFile)
     {
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HasHeaderRecord = true,
         };
 
-        using (var reader = new StreamReader(csvFile))
-        using (var csv = new CsvReader(reader, config))
+        using (StreamReader reader = new StreamReader(csvFile))
+        using (CsvReader csv = new CsvReader(reader, config))
         {
             csv.Context.RegisterClassMap<ContactMap>();
+            List<Contact> contacts = csv.GetRecords<Contact>().ToList();
 
-            var contacts = csv.GetRecords<Contact>().ToList();
-
-            var transaction = _sqLiteConnection.BeginTransaction();
-
-            foreach (var contact in contacts)
+            const int batchSize = 100;
+            using (SQLiteTransaction transaction = _sqLiteConnection.BeginTransaction())
             {
-                var insertCommand = new SQLiteCommand(_sqLiteConnection);
-                insertCommand.CommandText = @"
-                INSERT INTO Contacts (FirstName, LastName,County, Postal, Email)
-                VALUES (@FirstName, @LastName, @County, @Postal, @Email);
-            ";
-                insertCommand.Parameters.AddWithValue("@FirstName", contact.FirstName);
-                insertCommand.Parameters.AddWithValue("@LastName", contact.LastName);
-                insertCommand.Parameters.AddWithValue("@County", contact.County);
-                insertCommand.Parameters.AddWithValue("@Postal", contact.Postal);
-                insertCommand.Parameters.AddWithValue("@Email", contact.Email);
-                insertCommand.ExecuteNonQuery();
-            }
+                for (int batchStart = 0; batchStart < contacts.Count; batchStart += batchSize)
+                {
+                    List<Contact> batchContacts = contacts.Skip(batchStart).Take(batchSize).ToList();
+                    SQLiteCommand insertCommand = new SQLiteCommand(_sqLiteConnection);
+                    StringBuilder sb = new StringBuilder();
+                    
+                    sb.Append("INSERT INTO Contacts (FirstName, LastName, County, Postal, Email) VALUES ");
 
-            transaction.Commit();
+                    for (int i = 0; i < batchContacts.Count; i++)
+                    {
+                        var contact = batchContacts[i];
+                        sb.Append($"(@FirstName{batchStart + i}, @LastName{batchStart + i}, @County{batchStart + i}, @Postal{batchStart + i}, @Email{batchStart + i}),");
+
+                        insertCommand.Parameters.AddWithValue($"@FirstName{batchStart + i}", contact.FirstName);
+                        insertCommand.Parameters.AddWithValue($"@LastName{batchStart + i}", contact.LastName);
+                        insertCommand.Parameters.AddWithValue($"@County{batchStart + i}", contact.County);
+                        insertCommand.Parameters.AddWithValue($"@Postal{batchStart + i}", contact.Postal);
+                        insertCommand.Parameters.AddWithValue($"@Email{batchStart + i}", contact.Email);
+                    }
+                    sb.Length--;
+                    sb.Append(";");
+
+                    insertCommand.CommandText = sb.ToString();
+                    insertCommand.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+            }
         }
     }
 
@@ -154,7 +142,7 @@ public class Database
 
         _sqLiteConnection.Open();
         // SQL query to count occurrences of each domain
-       
+
 
         using (var command = new SQLiteCommand(sqlQuery, _sqLiteConnection))
         {
@@ -172,18 +160,19 @@ public class Database
         _sqLiteConnection.Close();
         return dataCounts;
     }
-    
+
     public List<Contact> GetAllContacts()
     {
         List<Contact> contacts = new List<Contact>();
- 
+
         _sqLiteConnection.Open();
-        SQLiteCommand cmd = new SQLiteCommand("SELECT FirstName, LastName, County, Postal, Email FROM Contacts", _sqLiteConnection);
+        SQLiteCommand cmd = new SQLiteCommand("SELECT FirstName, LastName, County, Postal, Email FROM Contacts",
+            _sqLiteConnection);
         SQLiteDataReader reader = cmd.ExecuteReader();
         while (reader.Read())
         {
             Contact contact = new Contact
-            {                
+            {
                 FirstName = reader.GetString(0),
                 LastName = reader.GetString(1),
                 County = reader.GetString(2),
@@ -192,12 +181,40 @@ public class Database
             };
             contacts.Add(contact);
         }
+
         _sqLiteConnection.Close();
 
         return contacts;
     }
 }
 
+public static class DatabaseQueries
+{
+    public static CountDictionary CountDomains(Database database)
+    {
+        return database.QueryCount(
+            @"
+            SELECT substr(Email, instr(Email, '@') + 1) AS Domain, COUNT(*) AS Count
+            FROM Contacts
+            GROUP BY Domain
+            ORDER BY Count DESC;
+            ",
+            "Domain"
+        );
+    }
+
+    public static CountDictionary CountCounties(Database database)
+    {
+        return database.QueryCount(
+            @"
+            SELECT County AS County, COUNT(*) AS Count
+            FROM Contacts
+            GROUP BY County
+            ORDER BY Count DESC;",
+            "County"
+        );
+    }
+}
 
 public class Contact
 {

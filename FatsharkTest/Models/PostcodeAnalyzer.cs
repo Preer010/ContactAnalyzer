@@ -21,31 +21,6 @@ public class PostcodeAnalyzer
         _client = new HttpClient(clientHandler);
     }
 
-    public async Task<(double Latitude, double Longitude)> GetCoordinatesAsync(string postcode)
-    {
-        //var url = $"https://api.postcodes.io/postcodes/{postcode}";
-        var url = $"https://api.postcodes.io/postcodes";
-        var content = new StringContent("{\"postcodes\":[\"OX49 5NU\",\"M32 0JG\",\"NE30 1DP\"]}",
-            System.Text.Encoding.UTF8, "application/json");
-        var response = await _client.PostAsync(url, content).ConfigureAwait(false);
-
-        response.EnsureSuccessStatusCode();
-        var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-
-        // var data = JObject();
-        // if (data["status"].Value<int>() == 200)
-        // {
-        //     var result = data["result"];
-        //     return (result["latitude"].Value<double>(), result["longitude"].Value<Double>());
-        // }
-        // else
-        // {
-        //     throw new Exception($"Failed to retrieve coordinates for postcode: {postcode}");
-        // }
-        return (2, 2);
-    }
-
     private List<List<string>> GetPayloads(List<string> postcodes, int apiLimit)
     {
         List<List<string>> postcodeJobs = new List<List<string>>();
@@ -78,9 +53,8 @@ public class PostcodeAnalyzer
             var payload = new { postcodes = job };
             var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
 
-            // TODO FIGURE OUT WHY THIS SHIT WONT APPEAREREAREAREREAR
             var response = await _client.PostAsync(url, content).ConfigureAwait(false);
-            
+
             response.EnsureSuccessStatusCode();
             var respondingStirng = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var data = JObject.Parse(respondingStirng);
@@ -88,8 +62,6 @@ public class PostcodeAnalyzer
 
             if (data["status"].Value<int>() == 200)
             {
-
-                
                 foreach (var result in data["result"])
                 {
                     var r = result["result"];
@@ -108,7 +80,6 @@ public class PostcodeAnalyzer
                 throw new Exception($"Failed to retrieve coordinates for bulk job");
             }
         }
-
 
         return results;
     }

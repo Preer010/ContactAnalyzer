@@ -13,7 +13,7 @@ public class ContactListingViewModel : ViewModelBase
         get => _contactsListView;
         set
         {
-            _contactsListView = value;
+            this._contactsListView = value;
             OnPropertyChanged(nameof(ContactsListView));
         }
     }
