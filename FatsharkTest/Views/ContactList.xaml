@@ -1,0 +1,53 @@
+﻿<UserControl x:Class="FatsharkTest.Views.ContactList"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:FatsharkTest.ViewModel"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="350">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid Background="{StaticResource BackplateColor}">
+        <Border/>
+        <Grid>
+            <Grid.RowDefinitions> 
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>                
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions> 
+            <TextBlock Text="Contact List" FontSize="24" Grid.Row="0" Margin="10 "></TextBlock>
+            <ListView ItemsSource="{Binding ContactsListView}" Grid.Row="1" Margin="25 10" BorderThickness="0" AlternationCount="2" Background="{StaticResource BackplateColor2}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="First Name" DisplayMemberBinding="{Binding FirstName}" Width="Auto"/>
+                        <GridViewColumn Header="Last Name" DisplayMemberBinding="{Binding LastName}" Width="Auto"/>
+                        <GridViewColumn Header="Email" DisplayMemberBinding="{Binding Email}" Width="Auto"/>
+                        <GridViewColumn Header="County" DisplayMemberBinding="{Binding County}" Width="Auto"/>
+                        <GridViewColumn Header="Postal" DisplayMemberBinding="{Binding Postal}" Width="Auto"/>
+                    </GridView>
+                </ListView.View>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Style.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="{StaticResource BackplateColor2}"/> <!-- Light gray color for odd rows -->
+                                </Trigger>                            
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="{StaticResource BackplateColor}"/> <!-- Light gray color for odd rows -->
+                                </Trigger>
+                            </Style.Triggers>
+                            <Setter Property="IsHitTestVisible" Value="False"></Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+            </ListView>
+            <Button Grid.Row="2" VerticalAlignment="Bottom" Content="Apply" Margin="10 10"></Button>
+        </Grid>
+        
+    </Grid>
+</UserControl>

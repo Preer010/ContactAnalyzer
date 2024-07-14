@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="FatsharkTest.Views.AnalyzedDataView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:oxy="http://oxyplot.org/wpf"
+             xmlns:views="clr-namespace:FatsharkTest.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="400" d:DesignWidth="600">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
+    <Grid Background="{StaticResource BackplateColor}">
+        <Border>
+            <Grid Margin="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0" Margin="20 20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <views:DataVisualizer Grid.Row="0"  Margin="10 10" DataContext="{Binding DomainVisualizer}"/>
+                    <views:DataVisualizer Grid.Row="1"  Margin="10 10" DataContext="{Binding CountyVisualizer}"/>
+                </Grid>
+                <views:GeoVisualizer Grid.Row="0" Grid.Column="1" DataContext="{Binding GeoVisualizer}"></views:GeoVisualizer>
+            </Grid>
+            
+        </Border>
+    </Grid>
+</UserControl>
