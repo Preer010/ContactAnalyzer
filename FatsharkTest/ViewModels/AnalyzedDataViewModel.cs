@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using FatsharkTest.Data;
 using FatsharkTest.Models;
-using FatsharkTest.Utils;
 using OxyPlot;
-using OxyPlot.Annotations;
-using OxyPlot.Axes;
-using OxyPlot.Legends;
-using OxyPlot.Series;
+
 
 namespace FatsharkTest.ViewModel;
 
@@ -60,7 +55,7 @@ public class AnalyzedDataViewModel : ViewModelBase
         _postcodeAnalyzer = new PostcodeAnalyzer();
         _database = dataBase;
         
-       CreateGeoVisualizer();
+        CreateGeoVisualizer();
 
         _dataAnalyzer = new DataAnalyzer(_database);
 
@@ -112,8 +107,4 @@ public class AnalyzedDataViewModel : ViewModelBase
         }
         return colors;
     }
-}
-
-internal class DataBase
-{
 }

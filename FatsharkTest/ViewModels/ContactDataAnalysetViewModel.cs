@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using FatsharkTest.Data;
-using FatsharkTest.Models;
+﻿using FatsharkTest.Data;
 
 namespace FatsharkTest.ViewModel;
 
@@ -8,7 +6,6 @@ public class ContactDataAnalysetViewModel : ViewModelBase
 {
     private AnalyzedDataViewModel _analyzedDataViewModel;
     private ContactListingViewModel _ContactListingViewModel;
-
 
     public AnalyzedDataViewModel AnalyzedDataViewModel => _analyzedDataViewModel;
     public ContactListingViewModel ContactListingViewModel => _ContactListingViewModel;

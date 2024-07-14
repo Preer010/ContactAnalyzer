@@ -1,13 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using OxyPlot;
-using OxyPlot.Annotations;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 
 namespace FatsharkTest.ViewModel;
-
 
 public class DataVisualizerViewModel : ViewModelPlotBase
 {
@@ -33,7 +30,6 @@ public class DataVisualizerViewModel : ViewModelPlotBase
     {
         OxyColor axisColor = OxyColor.FromRgb(0xa6, 0xa7, 0xb4);
 
-        _dataPlot = new OxyPlot.PlotModel();
         _dataPlot.Title = "Most Common Domains";
         _barSeries = new BarSeries();
         _barSeries.IsStacked = false;

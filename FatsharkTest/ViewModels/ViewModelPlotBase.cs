@@ -4,7 +4,6 @@ namespace FatsharkTest.ViewModel;
 
 public class ViewModelPlotBase : ViewModelBase
 {
-    
     protected PlotModel _dataPlot = new PlotModel();
     protected PlotController _dataController = new PlotController() ;
 

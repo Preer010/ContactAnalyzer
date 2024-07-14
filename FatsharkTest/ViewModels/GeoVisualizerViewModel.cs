@@ -29,12 +29,6 @@ public class GeoVisualizerViewModel : ViewModelPlotBase
         var clusters = points.GroupBy(p => p.ClusterId);
 
         clusters = clusters.OrderByDescending(c => c.Count());
-
-        double minLat = data.Min(o => o.Item1);
-        double minLong = data.Min(o => o.Item2);
-        double maxLat = data.Max(o => o.Item1);
-        double maxLong = data.Max(o => o.Item2);
-        
         var clusterColors = GenerateRandomColors(clusters.Count());
         
         foreach (var cluster in clusters)
