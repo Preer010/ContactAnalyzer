@@ -46,4 +46,28 @@
         <Setter Property="BorderBrush"  Value="{StaticResource BackplateColor2}"/>
         <Setter Property="Foreground"  Value="{StaticResource ForegroundColor}"/>
     </Style>
+    
+    
+    <Style TargetType="DataGrid">
+        <Setter Property="Foreground"  Value="{StaticResource ForegroundColor}"/>
+        <Setter Property="Background" Value="{StaticResource BackplateColor2}"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+    </Style>
+    
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="Foreground"  Value="{StaticResource ForegroundColor}"/>
+        <Setter Property="Background" Value="{StaticResource BackplateColor}"/>
+        <Setter Property="FontSize" Value="16"></Setter>
+        <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+        <Setter Property="Width" Value="Auto"/>
+        <Setter Property="MinWidth" Value="100"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource BackplateColor2}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    
+    
 </ResourceDictionary>

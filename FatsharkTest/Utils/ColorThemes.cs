@@ -7,7 +7,8 @@ namespace FatsharkTest.Utils;
 public static class ColorThemes
 {
     public static OxyColor Foreground = OxyColor.FromRgb(0xa6, 0xa7, 0xb4);
-
+    public static OxyColor BarColor1 = OxyColor.FromRgb(0x2e, 0x46, 0x69);
+    public static OxyColor BarColor2 = OxyColor.FromRgb(0x50, 0x3c, 0x60);
     
     public static List<OxyColor> GenerateRandomColors(int count)
     {

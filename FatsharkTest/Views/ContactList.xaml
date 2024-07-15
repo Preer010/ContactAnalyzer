@@ -9,45 +9,42 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/SharedStyles.xaml"/>
+                <ResourceDictionary Source="/SharedStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid Background="{StaticResource BackplateColor}">
-        <Border/>
+        <Border />
         <Grid>
-            <Grid.RowDefinitions> 
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>                
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions> 
-            <TextBlock Text="Contact List" FontSize="24" Grid.Row="0" Margin="10 "></TextBlock>
-            <ListView ItemsSource="{Binding ContactsListView}" Grid.Row="1" Margin="25 10" BorderThickness="0" AlternationCount="2" Background="{StaticResource BackplateColor2}">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="First Name" DisplayMemberBinding="{Binding FirstName}" Width="Auto"/>
-                        <GridViewColumn Header="Last Name" DisplayMemberBinding="{Binding LastName}" Width="Auto"/>
-                        <GridViewColumn Header="Email" DisplayMemberBinding="{Binding Email}" Width="Auto"/>
-                        <GridViewColumn Header="County" DisplayMemberBinding="{Binding County}" Width="Auto"/>
-                        <GridViewColumn Header="Postal" DisplayMemberBinding="{Binding Postal}" Width="Auto"/>
-                    </GridView>
-                </ListView.View>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Style.Triggers>
-                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                                    <Setter Property="Background" Value="{StaticResource BackplateColor2}"/> <!-- Light gray color for odd rows -->
-                                </Trigger>                            
-                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                    <Setter Property="Background" Value="{StaticResource BackplateColor}"/> <!-- Light gray color for odd rows -->
-                                </Trigger>
-                            </Style.Triggers>
-                            <Setter Property="IsHitTestVisible" Value="False"></Setter>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-            </ListView>
-            <Button Grid.Row="2" VerticalAlignment="Bottom" Content="Apply" Margin="10 10"></Button>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="Contact List" FontSize="24" Grid.Row="0" Margin="20 10 20 0 "></TextBlock>
+            <DataGrid Grid.Row="1" Margin="20" ItemsSource="{Binding ContactsListView}" AlternationCount="2">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="Auto" />
+                    <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="Auto" />
+                    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="Auto" />
+                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="Auto" />
+                    <DataGridTextColumn Header="County" Binding="{Binding County}" Width="Auto" />
+                    <DataGridTextColumn Header="Postal" Binding="{Binding Postal}" Width="Auto" />
+                </DataGrid.Columns>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                <Setter Property="Background" Value="{StaticResource BackplateColor2}" />
+                            </Trigger>
+                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                <Setter Property="Background" Value="{StaticResource BackplateColor}" />
+                            </Trigger>
+                        </Style.Triggers>
+                        <Setter Property="IsHitTestVisible" Value="False"/>
+                    </Style>
+                </DataGrid.RowStyle>
+            </DataGrid>
         </Grid>
-        
+
     </Grid>
 </UserControl>

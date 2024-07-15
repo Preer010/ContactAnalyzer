@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FatsharkTest.Data;
 using FatsharkTest.Models;
+using FatsharkTest.Utils;
 using OxyPlot;
 
 
@@ -37,12 +38,10 @@ public class AnalyzedDataViewModel : ViewModelBase
         _domains = _dataAnalyzer.Domains.Take(_sampleSize).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         _county = _dataAnalyzer.Counties.Take(_sampleSize).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-        var domainColor = OxyColor.FromRgb(0x2e, 0x46, 0x69);
-        DomainVisualizer = new DataVisualizerViewModel(domainColor);
+        DomainVisualizer = new DataVisualizerViewModel(ColorThemes.BarColor1);
         DomainVisualizer.SetData(_domains, "Domains");
 
-        var countyColor = OxyColor.FromRgb(0x50, 0x3c, 0x60);
-        CountyVisualizer = new DataVisualizerViewModel(countyColor);
+        CountyVisualizer = new DataVisualizerViewModel(ColorThemes.BarColor2);
         CountyVisualizer.SetData(_county, "Counties");
     }
 

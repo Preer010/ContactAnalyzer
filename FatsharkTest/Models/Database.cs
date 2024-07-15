@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows;
+using System.Windows.Controls;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -166,18 +169,19 @@ public class Database
         List<Contact> contacts = new List<Contact>();
 
         _sqLiteConnection.Open();
-        SQLiteCommand cmd = new SQLiteCommand("SELECT FirstName, LastName, County, Postal, Email FROM Contacts",
+        SQLiteCommand cmd = new SQLiteCommand("SELECT Id, FirstName, LastName, County, Postal, Email FROM Contacts",
             _sqLiteConnection);
         SQLiteDataReader reader = cmd.ExecuteReader();
         while (reader.Read())
         {
             Contact contact = new Contact
             {
-                FirstName = reader.GetString(0),
-                LastName = reader.GetString(1),
-                County = reader.GetString(2),
-                Postal = reader.GetString(3),
-                Email = reader.GetString(4),
+                Id = reader.GetInt32(0),
+                FirstName = reader.GetString(1),
+                LastName = reader.GetString(2),
+                County = reader.GetString(3),
+                Postal = reader.GetString(4),
+                Email = reader.GetString(5),
             };
             contacts.Add(contact);
         }
@@ -218,16 +222,12 @@ public static class DatabaseQueries
 
 public class Contact
 {
+    public int Id { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string County { get; set; }
     public string Postal { get; set; }
     public string Email { get; set; }
-
-    public override string ToString()
-    {
-        return $"{this.FirstName} {this.LastName}, {this.Email}";
-    }
 }
 
 public class ContactMap : ClassMap<Contact>
