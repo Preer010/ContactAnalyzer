@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Controls;
@@ -38,8 +37,6 @@ public partial class ContactListingViewModel : ViewModelBase
             OnPropertyChanged(nameof(TotalPages));
         }
     }
-
-    
     public ICommand PreviousPageCommand { get; private set; }
     public ICommand NextPageCommand { get; private set; }
     
@@ -60,8 +57,8 @@ public partial class ContactListingViewModel : ViewModelBase
         PageSize = 100;
         
         TotalContacts = _database.GetTableCount("Contacts");
-        PreviousPageCommand = new RelayCommand(PreviousPage, CanGoToPreviousPage);
-        NextPageCommand = new RelayCommand(NextPage, CanGoToNextPage);
+        PreviousPageCommand = new RelayCommand(PreviousPage);
+        NextPageCommand = new RelayCommand(NextPage);
         _totalPages = CalculateTotalPages();
         LoadContacts();
     }
@@ -77,6 +74,8 @@ public partial class ContactListingViewModel : ViewModelBase
         if (CurrentPage > 1)
         {
             CurrentPage--;
+            OnPropertyChanged(nameof(NextPageCommand));
+            OnPropertyChanged(nameof(PreviousPageCommand));
         }
     }
 
@@ -87,17 +86,6 @@ public partial class ContactListingViewModel : ViewModelBase
             CurrentPage++;
         }
     }
-
-    private bool CanGoToPreviousPage()
-    {
-        return CurrentPage > 1;
-    }
-
-    private bool CanGoToNextPage()
-    {
-        return CurrentPage < TotalPages;
-    }
-
     private int CalculateTotalPages()
     {
         return (int)Math.Ceiling((double)TotalContacts / PageSize);
