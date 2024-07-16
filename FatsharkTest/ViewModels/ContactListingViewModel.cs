@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -12,7 +14,35 @@ public partial class ContactListingViewModel : ViewModelBase
 {
     private Database _database;
     private ObservableCollection<Contact> _contactsListView;
+    private int _currentPage;
+    
+    public int PageSize  { get; private set; }
+    public int TotalContacts { get; private set; }
+    public int CurrentPage
+    {
+        get => _currentPage;
+        set
+        {
+            this._currentPage = value;
+            LoadContacts();
+            OnPropertyChanged(nameof(CurrentPage));
+        }
+    }
 
+    public int TotalPages
+    {
+        get => _currentPage;
+        set
+        {
+            this._currentPage = value;
+            OnPropertyChanged(nameof(TotalPages));
+        }
+    }
+
+    
+    public ICommand PreviousPageCommand { get; private set; }
+    public ICommand NextPageCommand { get; private set; }
+    
     public ObservableCollection<Contact> ContactsListView
     {
         get => _contactsListView;
@@ -26,11 +56,53 @@ public partial class ContactListingViewModel : ViewModelBase
     public ContactListingViewModel(Database dataBase)
     {
         _database = dataBase;
-        List<Contact> contacts = dataBase.GetAllContacts();
-        _contactsListView = new ObservableCollection<Contact>(contacts);
+        _currentPage = 1;
+        PageSize = 100;
+        
+        TotalContacts = _database.GetTableCount();
+        PreviousPageCommand = new RelayCommand(PreviousPage, CanGoToPreviousPage);
+        NextPageCommand = new RelayCommand(NextPage, CanGoToNextPage);
+        TotalPages = CalculateTotalPages();
+        LoadContacts();
+    }
+
+    private void LoadContacts()
+    {
+        _contactsListView = new ObservableCollection<Contact>(_database.GetContactPage(CurrentPage, PageSize).ToList());
         OnPropertyChanged(nameof(ContactsListView));
     }
 
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < CalculateTotalPages())
+        {
+            CurrentPage++;
+        }
+    }
+
+    private bool CanGoToPreviousPage()
+    {
+        return CurrentPage > 1;
+    }
+
+    private bool CanGoToNextPage()
+    {
+        return CurrentPage < TotalPages;
+    }
+
+    private int CalculateTotalPages()
+    {
+        return (int)Math.Ceiling((double)TotalContacts / PageSize);
+    }
+    
     [ICommand]
     private void OnCellEditEnding(DataGridCellEditEndingEventArgs? e)
     {

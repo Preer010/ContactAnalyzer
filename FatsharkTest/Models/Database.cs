@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -34,9 +35,10 @@ public class Database
 
         try
         {
-            _sqLiteConnection.Open();
             bool isNewDatabase = false;
             {
+                _sqLiteConnection.Open();
+
                 string checkTableQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name='Contacts';";
                 using (SQLiteCommand command = new SQLiteCommand(checkTableQuery, _sqLiteConnection))
                 {
@@ -59,7 +61,7 @@ public class Database
 	                    County	    TEXT,
 	                    Postal	    TEXT
                     );";
-                    
+
                     using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
                     {
                         command.ExecuteNonQuery();
@@ -69,23 +71,23 @@ public class Database
                     {
                         command.ExecuteNonQuery();
                     }
+                    _sqLiteConnection.Close();
+
                     ImportCsvData("uk-500.csv");
                 }
                 else
                 {
-                    // Check if the Contacts table is empty
-                    string checkEmptyTableQuery = "SELECT COUNT(*) FROM Contacts;";
-                    using (SQLiteCommand command = new SQLiteCommand(checkEmptyTableQuery, _sqLiteConnection))
+                    _sqLiteConnection.Close();
+
+                     if (GetTableCount() == 0)
                     {
-                        var count = Convert.ToInt32(command.ExecuteScalar());
-                        if (count == 0)
-                        {
-                            ImportCsvData("uk-500.csv");
-                        }
+                        ImportCsvData("uk-500.csv");
                     }
+
                 }
             }
             {
+                _sqLiteConnection.Open();
                 string dropTableQuery = "DROP TABLE IF EXISTS GeoLocation;";
                 string createGeoQuery = @"
                     CREATE TABLE GeoLocation (
@@ -94,7 +96,7 @@ public class Database
 	                    Longitude	    INTEGER,
 	                    PRIMARY KEY(Postal)
                     );";
-                
+
                 using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
                 {
                     command.ExecuteNonQuery();
@@ -104,8 +106,9 @@ public class Database
                 {
                     command.ExecuteNonQuery();
                 }
+                _sqLiteConnection.Close();
+
             }
-            _sqLiteConnection.Close();
         }
         catch (Exception e)
         {
@@ -114,8 +117,22 @@ public class Database
         }
     }
 
+    public int GetTableCount()
+    {
+        string checkEmptyTableQuery = "SELECT COUNT(*) FROM Contacts;";
+
+        _sqLiteConnection.Open();
+        using (SQLiteCommand command = new SQLiteCommand(checkEmptyTableQuery, _sqLiteConnection))
+        {
+            int count = Convert.ToInt32(command.ExecuteScalar());
+            _sqLiteConnection.Close();
+            return count;
+        }
+    }
+
     private void ImportCsvData(string csvFile)
     {
+        _sqLiteConnection.Open();
         CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HasHeaderRecord = true,
@@ -135,13 +152,14 @@ public class Database
                     List<Contact> batchContacts = contacts.Skip(batchStart).Take(batchSize).ToList();
                     SQLiteCommand insertCommand = new SQLiteCommand(_sqLiteConnection);
                     StringBuilder sb = new StringBuilder();
-                    
+
                     sb.Append("INSERT INTO Contacts (FirstName, LastName, County, Postal, Email) VALUES ");
 
                     for (int i = 0; i < batchContacts.Count; i++)
                     {
                         var contact = batchContacts[i];
-                        sb.Append($"(@FirstName{batchStart + i}, @LastName{batchStart + i}, @County{batchStart + i}, @Postal{batchStart + i}, @Email{batchStart + i}),");
+                        sb.Append(
+                            $"(@FirstName{batchStart + i}, @LastName{batchStart + i}, @County{batchStart + i}, @Postal{batchStart + i}, @Email{batchStart + i}),");
 
                         insertCommand.Parameters.AddWithValue($"@FirstName{batchStart + i}", contact.FirstName);
                         insertCommand.Parameters.AddWithValue($"@LastName{batchStart + i}", contact.LastName);
@@ -149,6 +167,7 @@ public class Database
                         insertCommand.Parameters.AddWithValue($"@Postal{batchStart + i}", contact.Postal);
                         insertCommand.Parameters.AddWithValue($"@Email{batchStart + i}", contact.Email);
                     }
+
                     sb.Length--;
                     sb.Append(";");
 
@@ -159,6 +178,8 @@ public class Database
                 transaction.Commit();
             }
         }
+        _sqLiteConnection.Close();
+
     }
 
     public Dictionary<string, int> QueryCount(string sqlQuery, string queryType)
@@ -185,10 +206,10 @@ public class Database
         _sqLiteConnection.Close();
         return dataCounts;
     }
-    
+
+    [Obsolete("GetAllContacts should not be used on large databases, refer to GetContactPage instead")]
     public List<Contact> GetAllContacts()
     {
-        // This function wont scale well. Only used for the clustering plot. (which also isnt the most scalable)
         List<Contact> contacts = new List<Contact>();
 
         _sqLiteConnection.Open();
@@ -213,7 +234,60 @@ public class Database
 
         return contacts;
     }
-    
+
+    public List<Contact> GetContactPage(int pageNumber, int pageSize)
+    {
+        List<Contact> contacts = new List<Contact>();
+
+        try
+        {
+            _sqLiteConnection.Open();
+
+            string query = @"
+                SELECT Id, FirstName, LastName, County, Postal, Email
+                FROM Contacts
+                ORDER BY Id
+                LIMIT @PageSize OFFSET @Offset;
+            ";
+
+            int offset = (pageNumber - 1) * pageSize;
+
+            using (SQLiteCommand command = new SQLiteCommand(query, _sqLiteConnection))
+            {
+                command.Parameters.AddWithValue("@PageSize", pageSize);
+                command.Parameters.AddWithValue("@Offset", offset);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Contact contact = new Contact
+                        {
+                            Id = reader.GetInt32(0),
+                            FirstName = reader.GetString(1),
+                            LastName = reader.GetString(2),
+                            County = reader.GetString(3),
+                            Postal = reader.GetString(4),
+                            Email = reader.GetString(5)
+                        };
+                        contacts.Add(contact);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"ERROR: {e.Message}");
+            throw;
+        }
+        finally
+        {
+            _sqLiteConnection.Close();
+        }
+
+        return contacts;
+    }
+
     public void UpdateContact(Contact contact)
     {
         string updateQuery = @"
@@ -235,8 +309,8 @@ public class Database
 
             command.ExecuteNonQuery();
         }
-        _sqLiteConnection.Close();
 
+        _sqLiteConnection.Close();
     }
 }
 

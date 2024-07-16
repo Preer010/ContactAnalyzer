@@ -49,7 +49,6 @@ public class AnalyzedDataViewModel : ViewModelBase
     private async void CreateGeoVisualizer()
     {
         GeoVisualizer = new GeoVisualizerViewModel();
-
         List<Contact> contacts = _database.GetAllContacts();
         List<string> postcodes = contacts.Select(c => c.Postal).ToList();
         List<(double, double)> data = await _postcodeAnalyzer.GetBulkCoordinatesAsync(postcodes);
