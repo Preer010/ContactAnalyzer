@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Windows;
-using System.Windows.Controls;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -38,9 +35,22 @@ public class Database
         try
         {
             _sqLiteConnection.Open();
+            bool isNewDatabase = false;
             {
-                string dropTableQuery = "DROP TABLE IF EXISTS Contacts;";
-                string createTableQuery = @"
+                string checkTableQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name='Contacts';";
+                using (SQLiteCommand command = new SQLiteCommand(checkTableQuery, _sqLiteConnection))
+                {
+                    var result = command.ExecuteScalar();
+                    if (result == null)
+                    {
+                        isNewDatabase = true;
+                    }
+                }
+
+                if (isNewDatabase)
+                {
+                    string dropTableQuery = "DROP TABLE IF EXISTS Contacts;";
+                    string createTableQuery = @"
                     CREATE TABLE Contacts (
                         Id          INTEGER PRIMARY KEY AUTOINCREMENT,
 	                    Email	    TEXT UNIQUE,
@@ -49,18 +59,32 @@ public class Database
 	                    County	    TEXT,
 	                    Postal	    TEXT
                     );";
+                    
+                    using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
 
-                using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
-                {
-                    command.ExecuteNonQuery();
+                    using (SQLiteCommand command = new SQLiteCommand(createTableQuery, _sqLiteConnection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                    ImportCsvData("uk-500.csv");
                 }
-
-                using (SQLiteCommand command = new SQLiteCommand(createTableQuery, _sqLiteConnection))
+                else
                 {
-                    command.ExecuteNonQuery();
+                    // Check if the Contacts table is empty
+                    string checkEmptyTableQuery = "SELECT COUNT(*) FROM Contacts;";
+                    using (SQLiteCommand command = new SQLiteCommand(checkEmptyTableQuery, _sqLiteConnection))
+                    {
+                        var count = Convert.ToInt32(command.ExecuteScalar());
+                        if (count == 0)
+                        {
+                            ImportCsvData("uk-500.csv");
+                        }
+                    }
                 }
             }
-
             {
                 string dropTableQuery = "DROP TABLE IF EXISTS GeoLocation;";
                 string createGeoQuery = @"
@@ -81,8 +105,6 @@ public class Database
                     command.ExecuteNonQuery();
                 }
             }
-
-            ImportCsvData("uk-500.csv");
             _sqLiteConnection.Close();
         }
         catch (Exception e)
@@ -163,9 +185,10 @@ public class Database
         _sqLiteConnection.Close();
         return dataCounts;
     }
-
+    
     public List<Contact> GetAllContacts()
     {
+        // This function wont scale well. Only used for the clustering plot. (which also isnt the most scalable)
         List<Contact> contacts = new List<Contact>();
 
         _sqLiteConnection.Open();
@@ -189,6 +212,31 @@ public class Database
         _sqLiteConnection.Close();
 
         return contacts;
+    }
+    
+    public void UpdateContact(Contact contact)
+    {
+        string updateQuery = @"
+        UPDATE Contacts
+        SET FirstName = @FirstName,
+            LastName = @LastName,
+            Email = @Email,
+            County = @County
+        WHERE Id = @Id;
+    ";
+        _sqLiteConnection.Open();
+        using (SQLiteCommand command = new SQLiteCommand(updateQuery, _sqLiteConnection))
+        {
+            command.Parameters.AddWithValue("@FirstName", contact.FirstName);
+            command.Parameters.AddWithValue("@LastName", contact.LastName);
+            command.Parameters.AddWithValue("@Email", contact.Email);
+            command.Parameters.AddWithValue("@County", contact.County);
+            command.Parameters.AddWithValue("@Id", contact.Id);
+
+            command.ExecuteNonQuery();
+        }
+        _sqLiteConnection.Close();
+
     }
 }
 
@@ -227,6 +275,7 @@ public class Contact
     public string LastName { get; set; }
     public string County { get; set; }
     public string Postal { get; set; }
+
     public string Email { get; set; }
 }
 

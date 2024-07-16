@@ -9,23 +9,16 @@ using OxyPlot.Series;
 namespace FatsharkTest.ViewModel;
 
 public class DataVisualizerViewModel : ViewModelPlotBase
-{
+{ 
     
     private BarSeries _barSeries;
 
-    public PlotModel DataPlot
-    {
-        get => _dataPlot;
-        set {
-            _dataPlot = value;
-            OnPropertyChanged(nameof(DataPlot));
-        }
-    }
     public DataVisualizerViewModel(OxyColor BarColor)
     {
         OxyColor axisColor = OxyColor.FromRgb(0xa6, 0xa7, 0xb4);
 
         _dataPlot.Title = "Most Common Domains";
+        _dataPlot.TitleHorizontalAlignment = TitleHorizontalAlignment.CenteredWithinView;
         _barSeries = new BarSeries();
         _barSeries.IsStacked = false;
         _barSeries.FillColor = BarColor;

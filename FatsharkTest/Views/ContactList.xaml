@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:local="clr-namespace:FatsharkTest.ViewModel"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="350">
     <UserControl.Resources>
@@ -21,14 +21,15 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <TextBlock Text="Contact List" FontSize="24" Grid.Row="0" Margin="20 10 20 0 "></TextBlock>
-            <DataGrid Grid.Row="1" Margin="20" ItemsSource="{Binding ContactsListView}" AlternationCount="2">
+            <DataGrid Grid.Row="1" Margin="20" ItemsSource="{Binding ContactsListView}" AlternationCount="2"
+                      IsReadOnly="False" AutoGenerateColumns="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="Auto" />
-                    <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" Width="Auto" />
-                    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" Width="Auto" />
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="Auto" />
-                    <DataGridTextColumn Header="County" Binding="{Binding County}" Width="Auto" />
-                    <DataGridTextColumn Header="Postal" Binding="{Binding Postal}" Width="Auto" />
+                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="Auto" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="First Name" Binding="{Binding FirstName, Mode=TwoWay}" Width="Auto" />
+                    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName, Mode=TwoWay}" Width="Auto" />
+                    <DataGridTextColumn Header="Email" Binding="{Binding Email, Mode=TwoWay}" Width="Auto" />
+                    <DataGridTextColumn Header="County" Binding="{Binding County, Mode=TwoWay}" Width="Auto" />
+                    <DataGridTextColumn Header="Postal" Binding="{Binding Postal}" Width="Auto" IsReadOnly="True" />
                 </DataGrid.Columns>
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
@@ -40,9 +41,13 @@
                                 <Setter Property="Background" Value="{StaticResource BackplateColor}" />
                             </Trigger>
                         </Style.Triggers>
-                        <Setter Property="IsHitTestVisible" Value="False"/>
                     </Style>
                 </DataGrid.RowStyle>
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="CellEditEnding">
+                        <i:InvokeCommandAction Command="{Binding OnCellEditEndingCommand}" PassEventArgsToCommand="True"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
             </DataGrid>
         </Grid>
 
