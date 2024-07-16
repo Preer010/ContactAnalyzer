@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace FatsharkTest.ViewModel;
+namespace FatsharkTest.ViewModels;
 
 public class ViewModelBase : INotifyPropertyChanged
 {

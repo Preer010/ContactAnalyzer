@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using FatsharkTest.Models;
-using FatsharkTest.ViewModel;
+using FatsharkTest.ViewModels;
 
 namespace FatsharkTest
 {

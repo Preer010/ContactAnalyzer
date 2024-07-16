@@ -7,7 +7,7 @@ using OxyPlot.Axes;
 using OxyPlot.Legends;
 using OxyPlot.Series;
 
-namespace FatsharkTest.ViewModel;
+namespace FatsharkTest.ViewModels;
 
 public class GeoVisualizerViewModel : ViewModelPlotBase
 {

@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using FatsharkTest.ViewModel;
+using FatsharkTest.ViewModels;
 
 namespace FatsharkTest
 {

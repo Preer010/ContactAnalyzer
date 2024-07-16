@@ -6,7 +6,7 @@ using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 
-namespace FatsharkTest.ViewModel;
+namespace FatsharkTest.ViewModels;
 
 public class DataVisualizerViewModel : ViewModelPlotBase
 { 

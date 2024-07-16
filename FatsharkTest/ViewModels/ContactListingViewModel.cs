@@ -7,7 +7,7 @@ using System.Windows.Input;
 using FatsharkTest.Data;
 using Microsoft.Toolkit.Mvvm.Input;
 
-namespace FatsharkTest.ViewModel;
+namespace FatsharkTest.ViewModels;
 
 public partial class ContactListingViewModel : ViewModelBase
 {

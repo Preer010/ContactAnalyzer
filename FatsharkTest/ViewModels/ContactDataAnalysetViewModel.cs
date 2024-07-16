@@ -1,6 +1,6 @@
 ﻿using FatsharkTest.Data;
 
-namespace FatsharkTest.ViewModel;
+namespace FatsharkTest.ViewModels;
 
 public class ContactDataAnalysetViewModel : ViewModelBase
 {

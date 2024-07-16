@@ -7,7 +7,7 @@ using FatsharkTest.Utils;
 using OxyPlot;
 
 
-namespace FatsharkTest.ViewModel;
+namespace FatsharkTest.ViewModels;
 
 public class AnalyzedDataViewModel : ViewModelBase
 {

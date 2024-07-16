@@ -1,6 +1,6 @@
 ﻿using OxyPlot;
 
-namespace FatsharkTest.ViewModel;
+namespace FatsharkTest.ViewModels;
 
 public class ViewModelPlotBase : ViewModelBase
 {
