@@ -15,18 +15,24 @@ public class KMeans
     public List<GeoPoint> GeoPoints { get; private set; }
     private List<Centroid> _centroids;
 
-    public KMeans(List<(double, double)> coords, int inK, int inMaxIt)
+    public KMeans(List<(double, double, string)> coords, int inK, int inMaxIt)
     {
         _k = inK;
         _maxIt = inMaxIt;
 
-        GeoPoints = coords.Select(coord => new GeoPoint(coord.Item1, coord.Item2)).ToList();
+        GeoPoints = coords.Select(coord => new GeoPoint(coord.Item1, coord.Item2, coord.Item3)).ToList();
+        _centroids = new List<Centroid>();
+    }
+    public KMeans(List<GeoPoint> coords, int inK, int inMaxIt)
+    {
+        _k = inK;
+        _maxIt = inMaxIt;
+        GeoPoints = coords;
         _centroids = new List<Centroid>();
     }
 
     public void Run()
     {
-
         InitCentroids();
         for (int i = 0; i < _maxIt; i++)
         {
@@ -141,12 +147,15 @@ public class GeoPoint
 {
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    
+    public string Postal { get; set; }
     public int ClusterId { get; set; }
 
-    public GeoPoint(double latitude, double longitude)
+    public GeoPoint(double latitude, double longitude, string postal)
     {
         Latitude = latitude;
         Longitude = longitude;
+        Postal = postal;
         ClusterId = -1;
     }
 }

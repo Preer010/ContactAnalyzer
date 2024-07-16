@@ -50,9 +50,25 @@ public class AnalyzedDataViewModel : ViewModelBase
     {
         GeoVisualizer = new GeoVisualizerViewModel();
         List<Contact> contacts = _database.GetAllContacts();
-        List<string> postcodes = contacts.Select(c => c.Postal).ToList();
-        List<(double, double)> data = await _postcodeAnalyzer.GetBulkCoordinatesAsync(postcodes);
+        List<GeoPoint> geoPoints = new List<GeoPoint>();
+        int count = _database.GetTableCount("GeoLocation");
+
+        // If there is a table filled with data we fetch it
+        // Otherwise we create the coordinates with the API and fill the table
         
-        GeoVisualizer.GeneratePlot(data);
+        if (count > 0)
+        {
+            geoPoints = _database.GetGeoData();
+        }
+        else
+        {
+            List<string> postcodes = contacts.Select(c => c.Postal).ToList();
+            List<(double, double, string)> data = await _postcodeAnalyzer.GetBulkCoordinatesAsync(postcodes);
+            geoPoints = data.Select(coord => new GeoPoint(coord.Item1, coord.Item2, coord.Item3)).ToList();
+            
+            _database.ImportGeoData(geoPoints);
+        }
+
+        GeoVisualizer.GeneratePlot(geoPoints);
     }
 }

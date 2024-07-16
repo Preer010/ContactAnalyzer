@@ -40,13 +40,13 @@ public class PostcodeAnalyzer
         return postcodeJobs;
     }
 
-    public async Task<List<(double Latitude, double Longitude)>> GetBulkCoordinatesAsync(List<string> postcodes)
+    public async Task<List<(double Latitude, double Longitude, string Postal)>> GetBulkCoordinatesAsync(List<string> postcodes)
     {
         const int apiLimit = 100;
         const string url = $"https://api.postcodes.io/postcodes/";
 
         List<List<string>> postcodeJobs = GetPayloads(postcodes, 100);
-        var results = new List<(double Latitude, double Longitude)>();
+        var results = new List<(double Latitude, double Longitude, string Postal)>();
 
         foreach (var job in postcodeJobs)
         {
@@ -70,9 +70,11 @@ public class PostcodeAnalyzer
                         continue;
                     }
 
-                    var latitude = r["latitude"].Value<double>();
-                    var longitude = r["longitude"].Value<double>();
-                    results.Add((latitude, longitude));
+                    double latitude = r["latitude"].Value<double>();
+                    double longitude = r["longitude"].Value<double>();
+                    string postal = result["query"].Value<string>();
+
+                    results.Add((latitude, longitude, postal));
                 }
             }
             else

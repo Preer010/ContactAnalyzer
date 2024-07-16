@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using CsvHelper;
 using CsvHelper.Configuration;
+using FatsharkTest.Utils;
 
 namespace FatsharkTest.Data;
 
@@ -37,7 +38,10 @@ public class Database
         {
             bool isNewDatabase = false;
             {
-                _sqLiteConnection.Open();
+                if (_sqLiteConnection.State != ConnectionState.Open)
+                {
+                    _sqLiteConnection.Open();
+                }
 
                 string checkTableQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name='Contacts';";
                 using (SQLiteCommand command = new SQLiteCommand(checkTableQuery, _sqLiteConnection))
@@ -71,43 +75,59 @@ public class Database
                     {
                         command.ExecuteNonQuery();
                     }
-                    _sqLiteConnection.Close();
+
+                    if (_sqLiteConnection.State != ConnectionState.Closed)
+                    {
+                        _sqLiteConnection.Close();
+                    }
 
                     ImportCsvData("uk-500.csv");
                 }
                 else
                 {
-                    _sqLiteConnection.Close();
+                    if (_sqLiteConnection.State != ConnectionState.Closed)
+                    {
+                        _sqLiteConnection.Close();
+                    }
 
-                     if (GetTableCount() == 0)
+                    if (GetTableCount("Contacts") == 0)
                     {
                         ImportCsvData("uk-500.csv");
                     }
-
                 }
             }
             {
-                _sqLiteConnection.Open();
-                string dropTableQuery = "DROP TABLE IF EXISTS GeoLocation;";
-                string createGeoQuery = @"
+                if (isNewDatabase)
+                {
+                    if (_sqLiteConnection.State != ConnectionState.Open)
+                    {
+                        _sqLiteConnection.Open();
+                    }
+
+                    string dropTableQuery = "DROP TABLE IF EXISTS GeoLocation;";
+                    string createGeoQuery = @"
                     CREATE TABLE GeoLocation (
 	                    Postal	        TEXT,
-	                    Latitude	    INTEGER,
-	                    Longitude	    INTEGER,
+	                    Latitude	    DOUBLE PRECISION,
+	                    Longitude	    DOUBLE PRECISION,
 	                    PRIMARY KEY(Postal)
                     );";
 
-                using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
-                {
-                    command.ExecuteNonQuery();
-                }
+                    using (SQLiteCommand command = new SQLiteCommand(dropTableQuery, _sqLiteConnection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
 
-                using (SQLiteCommand command = new SQLiteCommand(createGeoQuery, _sqLiteConnection))
-                {
-                    command.ExecuteNonQuery();
-                }
-                _sqLiteConnection.Close();
+                    using (SQLiteCommand command = new SQLiteCommand(createGeoQuery, _sqLiteConnection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
 
+                    if (_sqLiteConnection.State != ConnectionState.Closed)
+                    {
+                        _sqLiteConnection.Close();
+                    }
+                }
             }
         }
         catch (Exception e)
@@ -117,22 +137,34 @@ public class Database
         }
     }
 
-    public int GetTableCount()
+    public int GetTableCount(string table)
     {
-        string checkEmptyTableQuery = "SELECT COUNT(*) FROM Contacts;";
+        string checkEmptyTableQuery = $"SELECT COUNT(*) FROM {table};";
 
-        _sqLiteConnection.Open();
+        if (_sqLiteConnection.State != ConnectionState.Open)
+        {
+            _sqLiteConnection.Open();
+        }
+
         using (SQLiteCommand command = new SQLiteCommand(checkEmptyTableQuery, _sqLiteConnection))
         {
             int count = Convert.ToInt32(command.ExecuteScalar());
-            _sqLiteConnection.Close();
+            if (_sqLiteConnection.State != ConnectionState.Closed)
+            {
+                _sqLiteConnection.Close();
+            }
+
             return count;
         }
     }
 
     private void ImportCsvData(string csvFile)
     {
-        _sqLiteConnection.Open();
+        if (_sqLiteConnection.State != ConnectionState.Open)
+        {
+            _sqLiteConnection.Open();
+        }
+
         CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HasHeaderRecord = true,
@@ -178,17 +210,21 @@ public class Database
                 transaction.Commit();
             }
         }
-        _sqLiteConnection.Close();
 
+        if (_sqLiteConnection.State != ConnectionState.Closed)
+        {
+            _sqLiteConnection.Close();
+        }
     }
 
     public Dictionary<string, int> QueryCount(string sqlQuery, string queryType)
     {
         Dictionary<string, int> dataCounts = new Dictionary<string, int>();
 
-        _sqLiteConnection.Open();
-        // SQL query to count occurrences of each domain
-
+        if (_sqLiteConnection.State != ConnectionState.Open)
+        {
+            _sqLiteConnection.Open();
+        }
 
         using (var command = new SQLiteCommand(sqlQuery, _sqLiteConnection))
         {
@@ -203,7 +239,11 @@ public class Database
             }
         }
 
-        _sqLiteConnection.Close();
+        if (_sqLiteConnection.State != ConnectionState.Closed)
+        {
+            _sqLiteConnection.Close();
+        }
+
         return dataCounts;
     }
 
@@ -212,7 +252,11 @@ public class Database
     {
         List<Contact> contacts = new List<Contact>();
 
-        _sqLiteConnection.Open();
+        if (_sqLiteConnection.State != ConnectionState.Open)
+        {
+            _sqLiteConnection.Open();
+        }
+
         SQLiteCommand cmd = new SQLiteCommand("SELECT Id, FirstName, LastName, County, Postal, Email FROM Contacts",
             _sqLiteConnection);
         SQLiteDataReader reader = cmd.ExecuteReader();
@@ -230,7 +274,10 @@ public class Database
             contacts.Add(contact);
         }
 
-        _sqLiteConnection.Close();
+        if (_sqLiteConnection.State != ConnectionState.Closed)
+        {
+            _sqLiteConnection.Close();
+        }
 
         return contacts;
     }
@@ -239,48 +286,45 @@ public class Database
     {
         List<Contact> contacts = new List<Contact>();
 
-        try
+        if (_sqLiteConnection.State != ConnectionState.Open)
         {
             _sqLiteConnection.Open();
+        }
 
-            string query = @"
+        string query = @"
                 SELECT Id, FirstName, LastName, County, Postal, Email
                 FROM Contacts
                 ORDER BY Id
                 LIMIT @PageSize OFFSET @Offset;
             ";
 
-            int offset = (pageNumber - 1) * pageSize;
+        int offset = (pageNumber - 1) * pageSize;
 
-            using (SQLiteCommand command = new SQLiteCommand(query, _sqLiteConnection))
+        using (SQLiteCommand command = new SQLiteCommand(query, _sqLiteConnection))
+        {
+            command.Parameters.AddWithValue("@PageSize", pageSize);
+            command.Parameters.AddWithValue("@Offset", offset);
+
+            using (SQLiteDataReader reader = command.ExecuteReader())
             {
-                command.Parameters.AddWithValue("@PageSize", pageSize);
-                command.Parameters.AddWithValue("@Offset", offset);
-
-                using (SQLiteDataReader reader = command.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
+                    Contact contact = new Contact
                     {
-                        Contact contact = new Contact
-                        {
-                            Id = reader.GetInt32(0),
-                            FirstName = reader.GetString(1),
-                            LastName = reader.GetString(2),
-                            County = reader.GetString(3),
-                            Postal = reader.GetString(4),
-                            Email = reader.GetString(5)
-                        };
-                        contacts.Add(contact);
-                    }
+                        Id = reader.GetInt32(0),
+                        FirstName = reader.GetString(1),
+                        LastName = reader.GetString(2),
+                        County = reader.GetString(3),
+                        Postal = reader.GetString(4),
+                        Email = reader.GetString(5)
+                    };
+                    contacts.Add(contact);
                 }
             }
         }
-        catch (Exception e)
-        {
-            Console.WriteLine($"ERROR: {e.Message}");
-            throw;
-        }
-        finally
+
+
+        if (_sqLiteConnection.State != ConnectionState.Closed)
         {
             _sqLiteConnection.Close();
         }
@@ -298,7 +342,11 @@ public class Database
             County = @County
         WHERE Id = @Id;
     ";
-        _sqLiteConnection.Open();
+        if (_sqLiteConnection.State != ConnectionState.Open)
+        {
+            _sqLiteConnection.Open();
+        }
+
         using (SQLiteCommand command = new SQLiteCommand(updateQuery, _sqLiteConnection))
         {
             command.Parameters.AddWithValue("@FirstName", contact.FirstName);
@@ -310,7 +358,81 @@ public class Database
             command.ExecuteNonQuery();
         }
 
-        _sqLiteConnection.Close();
+        if (_sqLiteConnection.State != ConnectionState.Closed)
+        {
+            _sqLiteConnection.Close();
+        }
+    }
+
+    public void ImportGeoData(List<GeoPoint> geoPoints)
+    {
+        if (_sqLiteConnection.State != ConnectionState.Open)
+        {
+            _sqLiteConnection.Open();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        List<SQLiteParameter> parameters = new List<SQLiteParameter>();
+
+        sb.Append("INSERT INTO GeoLocation (Postal, Latitude, Longitude) VALUES ");
+
+        for (int i = 0; i < geoPoints.Count; i++)
+        {
+            GeoPoint geoPoint = geoPoints[i];
+            string postalParamName = $"@Postal{i}";
+            string latitudeParamName = $"@Latitude{i}";
+            string longitudeParamName = $"@Longitude{i}";
+
+            sb.Append($"({postalParamName}, {latitudeParamName}, {longitudeParamName}),");
+
+            parameters.Add(new SQLiteParameter(postalParamName, geoPoint.Postal));
+            parameters.Add(new SQLiteParameter(latitudeParamName, geoPoint.Latitude));
+            parameters.Add(new SQLiteParameter(longitudeParamName, geoPoint.Longitude));
+        }
+
+        sb.Length--; // Remove the last comma
+        sb.Append(";");
+
+        string commandText = sb.ToString();
+
+
+        using (SQLiteCommand insertCommand = new SQLiteCommand(commandText, _sqLiteConnection))
+        {
+            insertCommand.Parameters.AddRange(parameters.ToArray());
+            insertCommand.ExecuteNonQuery();
+        }
+
+        if (_sqLiteConnection.State != ConnectionState.Closed)
+        {
+            _sqLiteConnection.Close();
+        }
+    }
+
+    // TODO: Fix a page like getter for the geodata
+    [Obsolete("Would ideally not be use on a huge database")]
+    public List<GeoPoint> GetGeoData()
+    {
+        List<GeoPoint> geoPoints = new List<GeoPoint>();
+
+        if (_sqLiteConnection.State != ConnectionState.Open)
+        {
+            _sqLiteConnection.Open();
+        }
+
+        SQLiteCommand cmd = new SQLiteCommand("SELECT Postal, Latitude, Longitude FROM GeoLocation", _sqLiteConnection);
+        SQLiteDataReader reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            GeoPoint geoPoint = new GeoPoint(reader.GetDouble(1), reader.GetDouble(2), reader.GetString(0));
+            geoPoints.Add(geoPoint);
+        }
+
+        if (_sqLiteConnection.State != ConnectionState.Closed)
+        {
+            _sqLiteConnection.Close();
+        }
+
+        return geoPoints;
     }
 }
 
@@ -349,7 +471,6 @@ public class Contact
     public string LastName { get; set; }
     public string County { get; set; }
     public string Postal { get; set; }
-
     public string Email { get; set; }
 }
 

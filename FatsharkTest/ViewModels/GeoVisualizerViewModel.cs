@@ -16,7 +16,7 @@ public class GeoVisualizerViewModel : ViewModelPlotBase
         _dataController.UnbindMouseDown(OxyMouseButton.Left);
         _dataController.UnbindMouseDown(OxyMouseButton.Middle);
     }
-    public void GeneratePlot(List<(double, double)> data)
+    public void GeneratePlot(List<GeoPoint> data)
     {
         _dataPlot = new OxyPlot.PlotModel();
         _dataPlot.Title = "Groups Geographically Close To Each Other";
