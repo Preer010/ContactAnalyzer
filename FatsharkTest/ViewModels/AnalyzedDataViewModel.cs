@@ -49,7 +49,7 @@ public class AnalyzedDataViewModel : ViewModelBase
     private async void CreateGeoVisualizer()
     {
         GeoVisualizer = new GeoVisualizerViewModel();
-        List<Contact> contacts = _database.GetAllContacts();
+        
         List<GeoPoint> geoPoints = new List<GeoPoint>();
         int count = _database.GetTableCount("GeoLocation");
 
@@ -62,6 +62,8 @@ public class AnalyzedDataViewModel : ViewModelBase
         }
         else
         {
+            // TODO: Make this work with pages so we can choose how much data we are using
+            List<Contact> contacts = _database.GetAllContacts();
             List<string> postcodes = contacts.Select(c => c.Postal).ToList();
             List<(double, double, string)> data = await _postcodeAnalyzer.GetBulkCoordinatesAsync(postcodes);
             geoPoints = data.Select(coord => new GeoPoint(coord.Item1, coord.Item2, coord.Item3)).ToList();

@@ -21,16 +21,17 @@ public class GeoVisualizerViewModel : ViewModelPlotBase
         _dataPlot = new OxyPlot.PlotModel();
         _dataPlot.Title = "Groups Geographically Close To Each Other";
         
-        
+        // Create the clusters with the clustering algorithm
         KMeans alg = new KMeans(data, 7, 10);
         alg.Run();
+
         List<GeoPoint> points = alg.GeoPoints;
-
         var clusters = points.GroupBy(p => p.ClusterId);
-
         clusters = clusters.OrderByDescending(c => c.Count());
+
         List<OxyColor> clusterColors = ColorThemes.GenerateRandomColors(clusters.Count());
         
+        // Create plot series for each cluster
         foreach (IGrouping<int, GeoPoint> cluster in clusters)
         {
             Random random = new Random();

@@ -15,6 +15,10 @@ public partial class ContactListingViewModel : ViewModelBase
     private ObservableCollection<Contact> _contactsListView;
     private int _currentPage;
     private int _totalPages;
+
+    public ICommand PreviousPageCommand { get; private set; }
+    public ICommand NextPageCommand { get; private set; }
+
     public int PageSize  { get; private set; }
     public int TotalContacts { get; private set; }
     public int CurrentPage
@@ -27,7 +31,6 @@ public partial class ContactListingViewModel : ViewModelBase
             OnPropertyChanged(nameof(CurrentPage));
         }
     }
-
     public int TotalPages
     {
         get => _totalPages;
@@ -37,8 +40,7 @@ public partial class ContactListingViewModel : ViewModelBase
             OnPropertyChanged(nameof(TotalPages));
         }
     }
-    public ICommand PreviousPageCommand { get; private set; }
-    public ICommand NextPageCommand { get; private set; }
+
     
     public ObservableCollection<Contact> ContactsListView
     {
@@ -55,8 +57,8 @@ public partial class ContactListingViewModel : ViewModelBase
         _database = dataBase;
         _currentPage = 1;
         PageSize = 100;
-        
         TotalContacts = _database.GetTableCount("Contacts");
+
         PreviousPageCommand = new RelayCommand(PreviousPage);
         NextPageCommand = new RelayCommand(NextPage);
         _totalPages = CalculateTotalPages();
@@ -74,8 +76,6 @@ public partial class ContactListingViewModel : ViewModelBase
         if (CurrentPage > 1)
         {
             CurrentPage--;
-            OnPropertyChanged(nameof(NextPageCommand));
-            OnPropertyChanged(nameof(PreviousPageCommand));
         }
     }
 
