@@ -6,7 +6,10 @@ Because of my newly understanding of the areas I am was not sure what was good a
 This became a really fun learning experience ones I managed to piece the different puzzle pieces together.
 
 
-After a while i realized that I messed up the .idea folder. I thouhgt about making a new repo just to have a better structure, but I wanted to keep my commit history, so I felt it was quite low prio.
+I chose to do the test in JetBrains Rider because im more used to it from my previous job experience. 
+Now after doing the test I would have done it in Visual studio because they seem to have a lot more tools for WPF.
+I also messed the .idea folder up a bit in the project but didnt have time to fix it sadly.
+
 One of the biggest problems i encountered was to link commands to the datagrids events. After a lot of searching around I found a way that I felt was the cleanest.
 I spent some time figuring out and testing ideas for how to display the largest groups of people close to each other. I started with a heatmap but couldn't really make the background map match the coordinates propperly.
 So then I decided to just choose a clustering algorithm called K-Means which was quite easy to implement and gave decent results. 
